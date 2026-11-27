@@ -6,6 +6,7 @@
 | --- | --- |
 | 正式回放视频（264 帧，11.0 s，640×360，24 fps，H.264，直达下载） | https://github.com/nobody-le/rt-vision-measurement-lab/raw/work/lab-setup/results/task1/replay.mp4 |
 | 自求标定参数（NPZ） | https://github.com/nobody-le/rt-vision-measurement-lab/raw/work/lab-setup/results/task1/calibration.npz |
+| 相机内参、畸变、图像尺寸（可读文本） | [camera_parameters.txt](camera_parameters.txt) |
 | 选帧记录及理由 | [calibration_selection.md](calibration_selection.md) |
 | 选帧总览图（29 帧） | [calibration_selection.png](calibration_selection.png) |
 | 7.5 s 验收帧截图 | [acceptance_180_7.5s.png](acceptance_180_7.5s.png) |

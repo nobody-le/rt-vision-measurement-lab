@@ -1,0 +1,29 @@
+Task 1 camera calibration
+=========================
+
+source_video   : assets/chessboard_104435_preview.mp4
+calibration    : source frames 0-167 (first 7 s), 29 selected views
+board          : 9 x 6 inner corners, square size 20.0 mm
+image_size     : 640 x 360 px (width x height)
+reprojection   : RMS 0.141549 px
+
+Camera matrix K (px)
+--------------------
+[ 574.4943149518281    0.0                 302.8293977997245  ]
+[ 0.0                  572.7985171236802   182.19274284495143 ]
+[ 0.0                  0.0                 1.0                ]
+
+Distortion coefficients (OpenCV order: k1, k2, p1, p2, k3)
+----------------------------------------------------------
+k1 =  0.07997847073856627
+k2 = -0.010871406866886748
+p1 = -0.00042366007598700035
+p2 = -0.011620003828907714
+k3 =  0.0                     (fixed with cv2.CALIB_FIX_K3)
+
+Notes
+-----
+- Units: K in pixels; distortion dimensionless; image size in pixels.
+- The same values are stored in calibration.npz as K, dist,
+  image_size, square_size_m (0.02), rms and frames.
+- Lab reader: lab.inputs.load_calibration("results/task1/calibration.npz").
