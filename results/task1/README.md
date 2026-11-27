@@ -4,8 +4,7 @@
 
 | 内容 | 链接 |
 | --- | --- |
-| 正式回放视频（264 帧，11.0 s，640×360，24 fps，H.264，可在线播放） | https://cdn.jsdelivr.net/gh/nobody-le/rt-vision-measurement-lab@work/lab-setup/results/task1/replay.mp4 |
-| 视频仓库原件（下载） | https://github.com/nobody-le/rt-vision-measurement-lab/raw/work/lab-setup/results/task1/replay.mp4 |
+| 正式回放视频（264 帧，11.0 s，640×360，24 fps，H.264，直达下载） | https://github.com/nobody-le/rt-vision-measurement-lab/raw/work/lab-setup/results/task1/replay.mp4 |
 | 自求标定参数（NPZ） | https://github.com/nobody-le/rt-vision-measurement-lab/raw/work/lab-setup/results/task1/calibration.npz |
 | 选帧记录及理由 | [calibration_selection.md](calibration_selection.md) |
 | 选帧总览图（29 帧） | [calibration_selection.png](calibration_selection.png) |
