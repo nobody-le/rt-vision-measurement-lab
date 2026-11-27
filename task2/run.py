@@ -125,13 +125,12 @@ def ema_estimates(frames, obs: dict[int, Observation], alpha: float):
 
 def kalman_estimates(frames, obs: dict[int, Observation], sigma_r: float):
     """Constant-velocity linear KF; returns prior, posterior and mode."""
-    observed = sorted(obs)
-    f0, f1 = observed[0], observed[1]
-    z0, z1 = obs[f0].center, obs[f1].center
-    times = {tf.index: tf.time_s for tf in frames}
-    dt = times[f1] - times[f0]
-    velocity = (z1 - z0) / dt
-    x = np.array([z0[0], z0[1], velocity[0], velocity[1]], dtype=float)
+    f0 = min(obs)
+    z0 = obs[f0].center
+    # Causal start: no future observation is used to set the initial velocity.
+    # The second observation, when it actually arrives, updates the state and
+    # therefore the velocity through the normal Kalman update.
+    x = np.array([z0[0], z0[1], 0.0, 0.0], dtype=float)
     P = np.diag([P0_POS ** 2, P0_POS ** 2, P0_VEL ** 2, P0_VEL ** 2])
     H = np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]])
     R = np.eye(2) * sigma_r ** 2
@@ -144,6 +143,8 @@ def kalman_estimates(frames, obs: dict[int, Observation], sigma_r: float):
     mode[f0] = "init"
 
     for previous, current in zip(frames, frames[1:]):
+        if current.index <= f0:
+            continue
         dt = current.time_s - previous.time_s
         F = np.array([[1.0, 0.0, dt, 0.0],
                       [0.0, 1.0, 0.0, dt],
@@ -188,6 +189,22 @@ def counts(frames, obs):
         "ema_valid": len(frames),
         "kalman_valid": len(frames),
     }
+
+
+def recovery_frame(frames, obs) -> int:
+    """First observed frame after the last input blackout frame."""
+    black = [tf.index for tf in frames if tf.blackout]
+    if black:
+        last_blackout = max(black)
+        candidates = [tf.index for tf in frames
+                      if tf.index > last_blackout and not tf.blackout
+                      and tf.index in obs]
+    else:
+        candidates = [tf.index for tf in frames if tf.index in obs]
+    if not candidates:
+        raise SystemExit(
+            "no observed frame after the blackout; cannot export recovery frame")
+    return min(candidates)
 
 
 def write_frame_table(path: Path, frames, obs, ema, post, mode):
@@ -235,10 +252,11 @@ def plot_case(case: str, frames, obs, ema, post, manual, setting: int,
     black_idx = np.where(black)[0]
     first_black, last_black = black_idx[0], black_idx[-1]
     hold_idx = first_black - 1
-    recovery = min(f for f in manual if not frames[f].blackout)
+    recovery = recovery_frame(frames, obs)
 
     zoom_ids = sorted(set(range(max(0, first_black - 2),
-                                min(len(fs), last_black + 3))) | set(manual))
+                                min(len(fs), last_black + 3))) | set(manual)
+                      | {recovery})
     zx_values = list(kx[zoom_ids]) + list(mx) + [
         obs_x[recovery], ema[hold_idx][0]]
     zy_values = list(ky[zoom_ids]) + list(my) + [
@@ -287,6 +305,11 @@ def plot_case(case: str, frames, obs, ema, post, manual, setting: int,
                             color="magenta", fontsize=8,
                             bbox=dict(boxstyle="round,pad=0.15",
                                       fc="white", ec="none", alpha=0.75))
+            if recovery not in manual:
+                ax.annotate(f"recovery f{recovery}",
+                            (obs_x[recovery], obs_y[recovery]),
+                            xytext=(8, -16), textcoords="offset points",
+                            fontsize=8, color="black")
             hold = ema[hold_idx]
             ax.plot(hold[0], hold[1], "s", ms=11, mfc="none",
                     mec="tab:orange", mew=2.2)
@@ -451,14 +474,21 @@ def main() -> None:
         frames_a, obs_a, ema_a = data["a"]
         kf_a = {s: kalman_estimates(frames_a, obs_a, SIGMA_R[s])
                 for s in (1, 2)}
-        recovery_a = 20
-        manual_a = MANUAL["a"][recovery_a]
-        err_a = {s: float(np.linalg.norm(
-            kf_a[s][1][recovery_a] - manual_a)) for s in (1, 2)}
-        selected = min(err_a, key=err_a.get)
-        print(f"A recovery f{recovery_a}: corrected error "
-              f"setting1={err_a[1]:.2f} px, setting2={err_a[2]:.2f} px "
-              f"-> setting {selected}")
+        recovery_a = recovery_frame(frames_a, obs_a)
+        if recovery_a in MANUAL["a"]:
+            manual_a = MANUAL["a"][recovery_a]
+            err_a = {s: float(np.linalg.norm(
+                kf_a[s][1][recovery_a] - manual_a)) for s in (1, 2)}
+            selected = min(err_a, key=err_a.get)
+            print(f"A recovery f{recovery_a}: corrected error "
+                  f"setting1={err_a[1]:.2f} px, setting2={err_a[2]:.2f} px "
+                  f"-> setting {selected}")
+        else:
+            manual_a = None
+            err_a = {}
+            selected = 1
+            print(f"A recovery f{recovery_a} is not a fixed manual centre; "
+                  f"keeping setting 1")
     else:
         frames_a = obs_a = ema_a = kf_a = None
         recovery_a = None
@@ -482,7 +512,7 @@ def main() -> None:
                           post, mode)
         plot_case(case, frames, obs, ema, post, MANUAL[case], selected,
                   OUT / f"{case}_trajectory.png")
-        rec = min(f for f in MANUAL[case] if not frames[f].blackout)
+        rec = recovery_frame(frames, obs)
         recovery_screenshot(case, rec, obs[rec], prior[rec], post[rec],
                             selected, OUT / f"{case}_recovery.png")
         errors[case] = {}
@@ -517,7 +547,7 @@ def main() -> None:
                     f"{e['ema']:.3f}", f"{e['kalman']:.3f}",
                 ])
 
-    if "a" in data:
+    if "a" in data and recovery_a in MANUAL["a"]:
         rec = ROOT / "task2" / "recovery-comparison.csv"
         with rec.open("w", encoding="utf-8", newline="") as file:
             writer = csv.writer(file, lineterminator="\n")
