@@ -1,0 +1,107 @@
+{
+  "ema_alpha": 0.7,
+  "sigma_a_px_s2": 800.0,
+  "sigma_r_px": {
+    "1": 4.0,
+    "2": 8.0
+  },
+  "p0": {
+    "pos_px": 5.0,
+    "vel_px_s": 100.0
+  },
+  "selected_setting": 1,
+  "a_recovery_errors_px": {
+    "1": 3.596718417904329,
+    "2": 9.16240955268335
+  },
+  "cases": {
+    "a": {
+      "counts": {
+        "pre": 12,
+        "blackout": 8,
+        "post": 16,
+        "direct_valid": 28,
+        "ema_valid": 36,
+        "kalman_valid": 36
+      },
+      "setting": 1
+    },
+    "b": {
+      "counts": {
+        "pre": 10,
+        "blackout": 8,
+        "post": 19,
+        "direct_valid": 29,
+        "ema_valid": 37,
+        "kalman_valid": 37
+      },
+      "setting": 1
+    }
+  },
+  "reference_errors": {
+    "a": {
+      "14": {
+        "manual": [
+          864.0,
+          279.0
+        ],
+        "stage": "blackout",
+        "direct": null,
+        "ema": 43.94625211780355,
+        "kalman": 18.579294570157998
+      },
+      "18": {
+        "manual": [
+          842.0,
+          238.0
+        ],
+        "stage": "blackout",
+        "direct": null,
+        "ema": 90.47574690578581,
+        "kalman": 41.04577477838004
+      },
+      "20": {
+        "manual": [
+          834.0,
+          224.0
+        ],
+        "stage": "recovery",
+        "direct": 2.722464416663686,
+        "ema": 31.959267669756493,
+        "kalman": 3.596718417904329
+      }
+    },
+    "b": {
+      "12": {
+        "manual": [
+          678.0,
+          262.0
+        ],
+        "stage": "blackout",
+        "direct": null,
+        "ema": 44.16778866451096,
+        "kalman": 15.536227676950018
+      },
+      "16": {
+        "manual": [
+          677.0,
+          227.0
+        ],
+        "stage": "blackout",
+        "direct": null,
+        "ema": 79.17293715865057,
+        "kalman": 46.2376534504586
+      },
+      "18": {
+        "manual": [
+          675.0,
+          205.0
+        ],
+        "stage": "recovery",
+        "direct": 1.7469159252808855,
+        "ema": 31.461858733574918,
+        "kalman": 1.0097360684277128
+      }
+    }
+  }
+}
